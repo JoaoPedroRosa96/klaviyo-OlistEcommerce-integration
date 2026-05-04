@@ -41,7 +41,7 @@ Loja Olist Ecommerce
 - Conta Google (Gmail) para o Apps Script e Google Sheets
 - Conta Klaviyo com acesso a API Keys
 - Acesso ao GTM da loja
-- Acesso ao painel admin da loja VNDA para configurar webhook
+- Acesso ao painel admin da loja Olist Ecommerce para configurar webhook
 
 ---
 
@@ -116,11 +116,11 @@ const CONFIG = {
 4. Quem tem acesso: **Qualquer pessoa**
 5. Clique em **Implantar** e copie a URL gerada
 
-> ⚠️ Guarde essa URL — ela será usada como endpoint do webhook na plataforma VNDA.
+> ⚠️ Guarde essa URL — ela será usada como endpoint do webhook na plataforma Olist Ecommerce.
 
 ---
 
-### 1.5 Configurar o webhook na plataforma VNDA
+### 1.5 Configurar o webhook na plataforma Olist Ecommerce
 
 1. Acesse o painel admin da loja
 2. Vá em **Configurações → Integrações → Webhooks**
@@ -207,7 +207,7 @@ Para cada evento abaixo, crie uma tag do tipo **HTML personalizado** no GTM usan
 | Klaviyo - Started Checkout | `begin_checkout` | Started Checkout |
 | Klaviyo - Removed from Cart | `remove_from_cart` | Removed from Cart |
 
-> Os acionadores acima são do tipo **Evento personalizado** e correspondem aos eventos GA4 já emitidos pela plataforma VNDA no dataLayer.
+> Os acionadores acima são do tipo **Evento personalizado** e correspondem aos eventos GA4 já emitidos pela plataforma Olist Ecommerce no dataLayer.
 
 ---
 
@@ -254,7 +254,7 @@ O trigger automático de newsletter processará os registros a cada hora.
 ## Estrutura do repositório
 
 ```
-klaviyo-vnda-integration/
+klaviyo-olist-integration/
 ├── README.md
 ├── apps-script/
 │   └── Code.gs          ← script completo para o Google Apps Script
