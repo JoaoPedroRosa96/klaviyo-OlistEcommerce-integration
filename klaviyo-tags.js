@@ -8,6 +8,14 @@
  *
  * Cada arquivo abaixo corresponde a uma tag HTML personalizada
  * no GTM. O acionador de cada tag está indicado no cabeçalho.
+ *
+ * NOTAS SOBRE O DATALAYER DA PLATAFORMA VNDA:
+ * - ecommerce.value não é emitido — $value é calculado diretamente no script
+ * - ecommerce.transaction_id não existe no begin_checkout — usa token da URL
+ * - item_reference (SKU real) disponível em view_item e add_to_cart
+ * - item_variant (SKU real) disponível em remove_from_cart e begin_checkout
+ * - item_brand e item_category podem vir nulos/vazios em alguns eventos
+ * - item_category4 disponível em view_item e add_to_cart
  */
 
 // =============================================
@@ -19,14 +27,16 @@
   var items = {{DL - Items}};
   if (items && items.length > 0) {
     var item = items[0];
+
     klaviyo.track("Viewed Product", {
       "ProductName": item.item_name || "",
       "ProductID":   item.item_id   || "",
-      "SKU":         item.item_id   || "",
+      "SKU":         item.item_reference || item.item_id || "",
       "Categories": [
         item.item_category,
         item.item_category2,
-        item.item_category3
+        item.item_category3,
+        item.item_category4
       ].filter(Boolean),
       "ImageURL": item.image_url || "",
       "URL":      window.location.href,
@@ -49,8 +59,8 @@
 
     var cartItems = items.map(function(item) {
       return {
-        "ProductID":   item.item_id   || "",
-        "SKU":         item.item_id   || "",
+        "ProductID":   item.item_id || "",
+        "SKU":         item.item_reference || item.item_id || "",
         "ProductName": item.item_name || "",
         "Quantity":    item.quantity  || 1,
         "ItemPrice":   item.price     || 0,
@@ -60,22 +70,26 @@
         "Categories": [
           item.item_category,
           item.item_category2,
-          item.item_category3
+          item.item_category3,
+          item.item_category4
         ].filter(Boolean)
       };
     });
 
     klaviyo.track("Added to Cart", {
-      "$value":                {{DL - Value}} || 0,
+      "$value": items.reduce(function(sum, item) {
+        return sum + ((item.price || 0) * (item.quantity || 1));
+      }, 0),
       "AddedItemProductName":  addedItem.item_name || "",
       "AddedItemProductID":    addedItem.item_id   || "",
-      "AddedItemSKU":          addedItem.item_id   || "",
+      "AddedItemSKU":          addedItem.item_reference || addedItem.item_id || "",
       "AddedItemPrice":        addedItem.price     || 0,
       "AddedItemQuantity":     addedItem.quantity  || 1,
       "AddedItemCategories": [
         addedItem.item_category,
         addedItem.item_category2,
-        addedItem.item_category3
+        addedItem.item_category3,
+        addedItem.item_category4
       ].filter(Boolean),
       "AddedItemImageURL": addedItem.image_url || "",
       "AddedItemURL":      window.location.href,
@@ -97,12 +111,13 @@
 
     var cartItems = items.map(function(item) {
       return {
-        "ProductID":   item.item_id   || "",
-        "SKU":         item.item_id   || "",
+        "ProductID":   item.item_id || "",
+        "SKU":         item.item_variant || item.item_id || "",
         "ProductName": item.item_name || "",
         "Quantity":    item.quantity  || 1,
         "ItemPrice":   item.price     || 0,
         "RowTotal":    (item.price || 0) * (item.quantity || 1),
+        "Discount":    item.discount  || 0,
         "ProductURL":  window.location.href,
         "ImageURL":    item.image_url || "",
         "Categories": [
@@ -114,8 +129,10 @@
     });
 
     klaviyo.track("Started Checkout", {
-      "$event_id": ({{DL - Transaction ID}} || Date.now()) + "_" + Date.now(),
-      "$value":    {{DL - Value}} || 0,
+      "$event_id": (window.location.pathname.split('/').pop() || Date.now()) + "_" + Date.now(),
+      "$value": items.reduce(function(sum, item) {
+        return sum + ((item.price || 0) * (item.quantity || 1));
+      }, 0),
       "ItemNames": items.map(function(i) { return i.item_name; }).filter(Boolean),
       "Categories": items.reduce(function(acc, item) {
         [item.item_category, item.item_category2, item.item_category3]
@@ -143,10 +160,12 @@
     var removedItem = items[0];
 
     klaviyo.track("Removed from Cart", {
-      "$value":                  {{DL - Value}} || 0,
+      "$value": items.reduce(function(sum, item) {
+        return sum + ((item.price || 0) * (item.quantity || 1));
+      }, 0),
       "RemovedItemProductName":  removedItem.item_name || "",
       "RemovedItemProductID":    removedItem.item_id   || "",
-      "RemovedItemSKU":          removedItem.item_id   || "",
+      "RemovedItemSKU":          removedItem.item_variant || removedItem.item_id || "",
       "RemovedItemPrice":        removedItem.price     || 0,
       "RemovedItemQuantity":     removedItem.quantity  || 1,
       "RemovedItemCategories": [
@@ -168,15 +187,20 @@
  *
  * Tipo: Variável da camada de dados (Versão 2)
  *
- * Nome              | dataLayer path
- * ------------------|------------------------
- * DL - Items        | ecommerce.items
- * DL - Value        | ecommerce.value
- * DL - Transaction ID | ecommerce.transaction_id
- * DL - Coupon       | ecommerce.coupon
- * DL - Currency     | ecommerce.currency
- * DL - User Email   | user_data.email_address
- * DL - User Phone   | user_data.phone_number
+ * Nome                | dataLayer path
+ * --------------------|------------------------
+ * DL - Items          | ecommerce.items
+ * DL - Transaction ID | ecommerce.transaction_id  (somente no evento purchase)
+ * DL - Coupon         | ecommerce.coupon
+ * DL - Currency       | ecommerce.currency
+ * DL - User Email     | user_data.email_address
+ * DL - User Phone     | user_data.phone_number
+ *
+ * ATENÇÃO: DL - Value (ecommerce.value) não é emitido pela plataforma VNDA.
+ * O valor é calculado diretamente nas tags via:
+ *   items.reduce(function(sum, item) {
+ *     return sum + ((item.price || 0) * (item.quantity || 1));
+ *   }, 0)
  *
  * =============================================
  * SNIPPET KLAVIYO.JS (instalado em todas as páginas)
