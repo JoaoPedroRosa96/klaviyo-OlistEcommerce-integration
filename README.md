@@ -51,7 +51,7 @@ Loja Olist Ecommerce
 
 Faça uma cópia do modelo oficial:
 
-👉 **[Clique aqui para copiar a planilha modelo](https://docs.google.com/spreadsheets/d/19N4uzNehpqv8jfO2HRGm5Qv9QaSsP9V3MC0nIZ6AvEQ/copy)**
+**[Clique aqui para copiar a planilha modelo](https://docs.google.com/spreadsheets/d/19N4uzNehpqv8jfO2HRGm5Qv9QaSsP9V3MC0nIZ6AvEQ/copy)**
 
 A planilha contém duas abas:
 
@@ -116,7 +116,7 @@ const CONFIG = {
 4. Quem tem acesso: **Qualquer pessoa**
 5. Clique em **Implantar** e copie a URL gerada
 
-> ⚠️ Guarde essa URL — ela será usada como endpoint do webhook na plataforma Olist Ecommerce.
+>  Guarde essa URL — ela será usada como endpoint do webhook na plataforma Olist Ecommerce.
 
 ---
 
